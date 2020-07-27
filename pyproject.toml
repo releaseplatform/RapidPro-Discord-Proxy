@@ -10,7 +10,7 @@ python = "^3.8"
 fastapi = "^0.60.1"
 uvicorn = "^0.11.6"
 nest_asyncio = "^1.4.0"
-hypercorn = "^0.10.2"
+requests = "^2.24.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.5.3"

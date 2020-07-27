@@ -45,7 +45,10 @@ async def send_discord_channel(message: str, channel_id: int):
 @app.on_event("startup")
 async def startup():
     global client
-    client = DiscordHandler(loop=asyncio.get_running_loop())
+    client = DiscordHandler(
+        loop=asyncio.get_running_loop(),
+        callback_URL="https://webhook.site/bed870d3-603a-4b46-8fff-5472d123f6f0",
+    )
     print("logging in")
     await client.login(token),
     asyncio.create_task(
