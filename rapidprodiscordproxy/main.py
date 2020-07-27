@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import uvicorn
 from discord_handler import DiscordHandler
 import asyncio
@@ -15,11 +15,6 @@ with open("./discord-creds-DO-NOT-COMMIT.txt", "r") as f:
 print(token)
 
 
-@app.get("/")
-async def root():
-    return {"message": "hello"}
-
-
 @app.post("/discord/direct/send/")
 async def send_discord_DM(message: str, recipient_id: int):
     """
@@ -29,12 +24,22 @@ async def send_discord_DM(message: str, recipient_id: int):
     It can be found using the discord client with developer mode enabled,
     right clicking on the user
     """
-    await client.send_dm(message, recipient_id)
+    try:
+        await client.send_dm(message, recipient_id)
+    except client.UserNotFoundException:
+        raise HTTPException(
+            404, "No user with that ID found. Do they exist? Do you have permissions?",
+        )
 
 
 @app.post("/discord/channel/send/")
 async def send_discord_channel(message: str, channel_id: int):
-    await client.send_channel(message, channel_id)
+    try:
+        await client.send_channel(message, channel_id)
+    except DiscordHandler.ChannelNotFoundException:
+        raise HTTPException(
+            404, "Could not find a discord channel with that ID. Does it exist?"
+        )
 
 
 @app.on_event("startup")

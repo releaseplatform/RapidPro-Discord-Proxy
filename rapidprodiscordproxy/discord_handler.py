@@ -19,13 +19,25 @@ class DiscordHandler(discord.Client):
         )
 
     async def send_dm(self, message: str, user_id: int):
-        # channel: discord.TextChannel = self.get_channel(737097898738581599)
-        # await channel.send(message)
         user: discord.User = self.get_user(user_id)
+        if user is None:
+            raise self.UserNotFoundException()
         if user.dm_channel is None:
             await user.create_dm()
-        await user.dm_channel.send(message)
+        if user.dm_channel is not None and isinstance(
+            user.dm_channel, discord.DMChannel
+        ):
+            await user.dm_channel.send(message)
 
     async def send_channel(self, message: str, channel_id: int):
-        channel: discord.GroupChannel = self.get_channel(channel_id)
-        await channel.send(message)
+        channel: discord.TextChannel = self.get_channel(channel_id)
+        if channel is not None and isinstance(channel, discord.TextChannel):
+            await channel.send(message)
+        else:
+            raise self.ChannelNotFoundException()
+
+    class ChannelNotFoundException(Exception):
+        pass
+
+    class UserNotFoundException(Exception):
+        pass
