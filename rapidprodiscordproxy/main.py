@@ -42,12 +42,17 @@ async def send_discord_channel(message: str, channel_id: int):
         )
 
 
+@app.post("/discord/rp/send")
+async def rapidpro_external_send(text: str, to: int, _from: int, channel: int, id: int):
+    print(text, to, _from, channel, id)
+
+
 @app.on_event("startup")
 async def startup():
     global client
     client = DiscordHandler(
         loop=asyncio.get_running_loop(),
-        callback_URL="https://webhook.site/bed870d3-603a-4b46-8fff-5472d123f6f0",
+        callback_URL="http://localhost:8080/c/ex/a94f98ef-99f9-4fc3-b4db-479bdff4bbe8/receive",
     )
     print("logging in")
     await client.login(token),
@@ -64,4 +69,4 @@ async def shutdown():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

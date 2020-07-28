@@ -20,7 +20,7 @@ class DiscordHandler(discord.Client):
         #     f"channel: {message.channel}\n"
         #     f"content: {message.content}\n"
         # )
-        requests.post(self.callback_URL, data=self.__message_to_json(message))
+        requests.post(self.callback_URL, data=self.__message_to_dict(message))
 
     async def send_dm(self, message: str, user_id: int):
         user: discord.User = self.get_user(user_id)
@@ -46,15 +46,15 @@ class DiscordHandler(discord.Client):
     class UserNotFoundException(Exception):
         pass
 
-    def __message_to_json(self, message: discord.Message) -> str:
+    def __message_to_dict(self, message: discord.Message) -> dict:
         dictionary = {
-            "content": message.clean_content,
-            "author": str(message.author),
-            "authorid": message.author.id,
-            "guild": str(message.guild),
-            "guildid": message.guild.id if message.guild is not None else None,
-            "channel": str(message.channel),
-            "channelid": message.channel.id,
-            "timestamp": str(message.created_at),
+            "text": message.clean_content,
+            # "author": str(message.author),
+            "from": message.author.id,
+            # "guild": str(message.guild),
+            # "guildid": message.guild.id if message.guild is not None else None,
+            # "channel": str(message.channel),
+            # "channelid": message.channel.id,
+            # "timestamp": str(message.created_at),
         }
-        return json.dumps(dictionary)
+        return dictionary
