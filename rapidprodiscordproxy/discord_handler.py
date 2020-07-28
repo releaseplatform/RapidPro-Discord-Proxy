@@ -14,12 +14,12 @@ class DiscordHandler(discord.Client):
     async def on_message(self, message: discord.Message):
         if self.user == message.author:
             return  # We don't want to handle messages we've sent.
-        # print(
-        #     f"Message received from: {message.author}\n"
-        #     f"guild: {message.guild}\n"
-        #     f"channel: {message.channel}\n"
-        #     f"content: {message.content}\n"
-        # )
+        print(
+            f"Message received from: {message.author}\n"
+            f"guild: {message.guild}\n"
+            f"channel: {message.channel}\n"
+            f"content: {message.content}\n"
+        )
         requests.post(self.callback_URL, data=self.__message_to_dict(message))
 
     async def send_dm(self, message: str, user_id: int):

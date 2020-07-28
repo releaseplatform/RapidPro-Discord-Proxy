@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import uvicorn
 from discord_handler import DiscordHandler
+from pydantic import BaseModel, Field
 import asyncio
 
 app = FastAPI()
@@ -13,6 +14,14 @@ with open("./discord-creds-DO-NOT-COMMIT.txt", "r") as f:
     token = f.read().strip()
 
 print(token)
+
+
+class RapidProMessage(BaseModel):
+    id: str
+    text: str
+    to: int
+    from_: int = Field(alias="from")
+    channel: str
 
 
 @app.post("/discord/direct/send/")
@@ -43,8 +52,9 @@ async def send_discord_channel(message: str, channel_id: int):
 
 
 @app.post("/discord/rp/send")
-async def rapidpro_external_send(text: str, to: int, _from: int, channel: int, id: int):
-    print(text, to, _from, channel, id)
+async def rapidpro_external_send(message: RapidProMessage):
+    print(message)
+    await client.send_dm(message.text, message.to)
 
 
 @app.on_event("startup")
