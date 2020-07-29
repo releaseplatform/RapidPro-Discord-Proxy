@@ -1,12 +1,13 @@
 import discord
 import requests
-import json
+from rapidprodiscordproxy import RapidProMessage
+from rapidprodiscordproxy.config import RapidProDiscordConfig
 
 
 class DiscordHandler(discord.Client):
-    def __init__(self, *args, callback_URL="http://localhost:5000", **kwargs):
+    def __init__(self, config: RapidProDiscordConfig, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.callback_URL = callback_URL
+        self.config = config
 
     async def on_ready(self):
         print(f"Successfully Logged on as {self.user}")
@@ -20,10 +21,10 @@ class DiscordHandler(discord.Client):
             f"channel: {message.channel}\n"
             f"content: {message.content}\n"
         )
-        requests.post(self.callback_URL, data=self.__message_to_dict(message))
+        requests.post(self.config.receive_url, data=self.__message_to_dict(message))
 
-    async def send_dm(self, message: str, user_id: int):
-        user: discord.User = self.get_user(user_id)
+    async def send_dm(self, message: RapidProMessage):
+        user: discord.User = self.get_user(message.to)
         if user is None:
             raise self.UserNotFoundException()
         if user.dm_channel is None:
@@ -31,14 +32,18 @@ class DiscordHandler(discord.Client):
         if user.dm_channel is not None and isinstance(
             user.dm_channel, discord.DMChannel
         ):
-            await user.dm_channel.send(message)
+            await user.dm_channel.send(message.text)
+            requests.post(self.config.sent_url, data={"id": message.id})
 
-    async def send_channel(self, message: str, channel_id: int):
-        channel: discord.TextChannel = self.get_channel(channel_id)
-        if channel is not None and isinstance(channel, discord.TextChannel):
-            await channel.send(message)
-        else:
-            raise self.ChannelNotFoundException()
+    async def login(self):
+        await super().login(self.config.discord_bot_token)
+
+    # async def send_channel(self, message: str, channel_id: int):
+    #     channel: discord.TextChannel = self.get_channel(channel_id)
+    #     if channel is not None and isinstance(channel, discord.TextChannel):
+    #         await channel.send(message)
+    #     else:
+    #         raise self.ChannelNotFoundException()
 
     class ChannelNotFoundException(Exception):
         pass

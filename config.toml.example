@@ -1,0 +1,6 @@
+[[config]]
+name = "RapidPro test discord bot"
+rapidpro_domain = "http://localhost"
+channel_id = "<UUID FROM RAPIDPRO HERE>"
+discord_bot_token = "<TOKEN>"
+
