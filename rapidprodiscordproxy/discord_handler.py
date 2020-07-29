@@ -2,6 +2,7 @@ import discord
 import requests
 from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.config import RapidProDiscordConfig
+import re
 
 
 class DiscordHandler(discord.Client):
@@ -15,13 +16,29 @@ class DiscordHandler(discord.Client):
     async def on_message(self, message: discord.Message):
         if self.user == message.author:
             return  # We don't want to handle messages we've sent.
-        print(
-            f"Message received from: {message.author}\n"
-            f"guild: {message.guild}\n"
-            f"channel: {message.channel}\n"
-            f"content: {message.content}\n"
+
+        if isinstance(message.channel, discord.DMChannel):
+            # This is when we receive a DM from a user
+            print(f"We received a message from {message.author}: {message.content}")
+            text = message.clean_content
+        elif self.user.mentioned_in(message) and not message.mention_everyone:
+            # If someone's in a channel that contains the bot, and @mentions the bot
+            text = re.sub(
+                r"<@!?" + str(self.user.id) + r">\s", "", message.content
+            )  # strip the mention
+            print(
+                "Bot was directly mentioned in a channel by "
+                f"{message.author}: {message.clean_content}"
+            )
+        else:
+            # We don't want the entire chat history of the channel in RP, only bot stuff
+            print("ordinary channel message -- ignoring")
+            return
+
+        requests.post(
+            self.config.receive_url, data={"text": text, "from": message.author.id}
         )
-        requests.post(self.config.receive_url, data=self.__message_to_dict(message))
+        print("Forwarded to rapidpro" + repr({"text": text, "from": message.author.id}))
 
     async def send_dm(self, message: RapidProMessage):
         user: discord.User = self.get_user(message.to)
@@ -50,16 +67,3 @@ class DiscordHandler(discord.Client):
 
     class UserNotFoundException(Exception):
         pass
-
-    def __message_to_dict(self, message: discord.Message) -> dict:
-        dictionary = {
-            "text": message.clean_content,
-            # "author": str(message.author),
-            "from": message.author.id,
-            # "guild": str(message.guild),
-            # "guildid": message.guild.id if message.guild is not None else None,
-            # "channel": str(message.channel),
-            # "channelid": message.channel.id,
-            # "timestamp": str(message.created_at),
-        }
-        return dictionary

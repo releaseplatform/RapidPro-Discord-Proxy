@@ -9,32 +9,6 @@ app = FastAPI()
 
 client: DiscordHandler
 
-# @app.post("/discord/direct/send/")
-# async def send_discord_DM(message: str, recipient_id: int):
-#     """
-#     Sends a message to a specified user in their DMs.
-#     Must have the permissions to send messages.
-#     recipient_id is the internal ID for the discord user.
-#     It can be found using the discord client with developer mode enabled,
-#     right clicking on the user
-#     """
-#     try:
-#         await client.send_dm(message, recipient_id)
-#     except client.UserNotFoundException:
-#         raise HTTPException(
-#             404, "No user with that ID found. Do they exist? Do you have permissions?",
-#         )
-
-
-@app.post("/discord/channel/send/")
-async def send_discord_channel(message: str, channel_id: int):
-    try:
-        await client.send_channel(message, channel_id)
-    except DiscordHandler.ChannelNotFoundException:
-        raise HTTPException(
-            404, "Could not find a discord channel with that ID. Does it exist?"
-        )
-
 
 @app.post("/discord/rp/send")
 async def rapidpro_external_send(message: RapidProMessage):
