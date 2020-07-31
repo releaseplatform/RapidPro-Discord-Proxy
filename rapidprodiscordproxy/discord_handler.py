@@ -34,6 +34,9 @@ class DiscordHandler(discord.Client):
             # We don't want the entire chat history of the channel in RP, only bot stuff
             print("ordinary channel message -- ignoring")
             return
+        print(f"id: {message.author.id}, usernameanddiscriminator: {message.author}")
+        author_with_fragment = f"{message.author.id}#{message.author}"
+        print(author_with_fragment)
 
         requests.post(
             self.config.receive_url, data={"text": text, "from": message.author.id}

@@ -23,7 +23,9 @@ async def rapidpro_external_send(message: RapidProMessage):
 
 @app.on_event("startup")
 async def startup():
-    configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
+    rapidprodiscordproxy.config.get_configs_from_db()
+    # configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
+    configs = rapidprodiscordproxy.config.get_configs_from_db()
 
     global client
     client = DiscordHandler(configs[0], loop=asyncio.get_running_loop())

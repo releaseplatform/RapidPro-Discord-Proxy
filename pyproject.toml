@@ -11,6 +11,9 @@ fastapi = "^0.60.1"
 uvicorn = "^0.11.6"
 nest_asyncio = "^1.4.0"
 requests = "^2.24.0"
+sqlacodegen = "^2.3.0"
+psycopg2 = "^2.8.5"
+sqlalchemy = "^1.3.18"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.5.3"
