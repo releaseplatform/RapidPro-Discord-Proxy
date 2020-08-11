@@ -4,16 +4,23 @@ from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.discord_handler import DiscordHandler
 import rapidprodiscordproxy.config
 import asyncio
+from typing import Dict
 
 app = FastAPI()
 
-client: DiscordHandler
+channels: Dict[str, DiscordHandler] = {}
 
 
 @app.post("/discord/rp/send")
 async def rapidpro_external_send(message: RapidProMessage):
     print(message)
+    print(channels)
+    if message.channel in channels:
+        client: DiscordHandler = channels[message.channel]
+    else:
+        raise HTTPException(404, "No channel with that ID found")
     try:
+        print(message)
         await client.send_dm(message)
     except client.UserNotFoundException:
         raise HTTPException(
@@ -23,24 +30,25 @@ async def rapidpro_external_send(message: RapidProMessage):
 
 @app.on_event("startup")
 async def startup():
-    rapidprodiscordproxy.config.get_configs_from_db()
     # configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
     configs = rapidprodiscordproxy.config.get_configs_from_db()
-
-    global client
-    client = DiscordHandler(configs[0], loop=asyncio.get_running_loop())
-    print("logging in")
-    await client.login(),
-    asyncio.create_task(
-        client.connect(), name="Discord Task",
-    )
-    await client.wait_for("ready")
-    print("logged in successfully")
+    global channels
+    for c in configs:
+        print(c)
+        client = DiscordHandler(c, loop=asyncio.get_running_loop())
+        channels[c.channel_id] = client
+        await client.login()
+        asyncio.create_task(
+            client.connect(), name=f"Discord Task {c.channel_id}",
+        )
+        await client.wait_for("ready")
+        print("logged in successfully")
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    await client.logout()
+    for c in channels.values():
+        await c.logout()
 
 
 if __name__ == "__main__":

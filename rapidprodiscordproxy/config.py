@@ -11,21 +11,10 @@ import json
 DATABASE_URL = "postgresql://temba:temba@192.168.122.207"
 RAPIDPRO_DOMAIN = "http://localhost"
 
-CHANNEL_TYPE = "EX"  # This will later be something specific to discord
+CHANNEL_TYPE = "DS"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def get_db():
-    """
-    This is a dependency (in the FastAPI sense) that can give us a DB session
-    """
-    db: Session = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 class RapidProDiscordConfig(BaseModel):
@@ -36,7 +25,7 @@ class RapidProDiscordConfig(BaseModel):
 
     @property
     def base_url(self):
-        return str(self.rapidpro_domain) + "/c/ex/" + str(self.channel_id)
+        return str(self.rapidpro_domain) + "/c/ds/" + str(self.channel_id)
 
     @property
     def receive_url(self):

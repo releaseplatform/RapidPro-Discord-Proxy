@@ -42,6 +42,7 @@ class DiscordHandler(discord.Client):
             self.config.receive_url, data={"text": text, "from": message.author.id}
         )
         print("Forwarded to rapidpro" + repr({"text": text, "from": message.author.id}))
+        print("receive URL", self.config.receive_url)
 
     async def send_dm(self, message: RapidProMessage):
         user: discord.User = self.get_user(message.to)
