@@ -7,7 +7,7 @@ RUN adduser --uid 1000 --disabled-password --gecos '' --home /srv/rp-discord rp-
 WORKDIR /srv/rp-discord/rp-discord
 RUN apt-get -yq update \
         && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                unattended-upgrades \
+        unattended-upgrades \
         && rm -rf /var/lib/apt/lists/* \
         && apt-get clean
 
@@ -16,9 +16,9 @@ FROM base AS pybuilder
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN apt-get -yq update \
         && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                build-essential \
-                # psycopg2 deps
-                libpq-dev \
+        build-essential \
+        # psycopg2 deps
+        libpq-dev \
         && rm -rf /var/lib/apt/lists/* \
         && apt-get clean
 COPY --chown=rp-discord poetry.lock pyproject.toml ./
@@ -33,3 +33,4 @@ COPY --chown=rp-discord . /srv/rp-discord/rp-discord/
 COPY --chown=rp-discord ./entrypoint /srv/rp-discord/bin/entrypoint
 USER rp-discord
 ENTRYPOINT ["entrypoint"]
+CMD [ "uvicorn rapidprodiscordproxy.main:app" ]

@@ -8,8 +8,10 @@ from sqlalchemy.orm import sessionmaker, Session
 import codegen.models
 import json
 
-DATABASE_URL = "postgresql://temba:temba@192.168.122.207"
-RAPIDPRO_DOMAIN = "http://localhost"
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://temba:temba@localhost")
+RAPIDPRO_DOMAIN = os.getenv("RAPIDPRO_DOMAIN", "http://localhost")
 
 CHANNEL_TYPE = "DS"
 

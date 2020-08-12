@@ -488,7 +488,7 @@ version = "0.13.6"
 full = ["aiofiles", "graphene", "itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests", "ujson"]
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
 optional = false
@@ -589,7 +589,7 @@ multidict = ">=4.0"
 typing-extensions = ">=3.7.4"
 
 [metadata]
-content-hash = "bb129c1403a535e1ee43ced8b31d28ec1c69fc659d27be55cd9edd9faf224c02"
+content-hash = "284edd015427c9ba9f19208391284d94b256d971860b7878916b66918346f99c"
 lock-version = "1.0"
 python-versions = "^3.8"
 
