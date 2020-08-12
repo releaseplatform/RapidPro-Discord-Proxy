@@ -33,4 +33,3 @@ COPY --chown=rp-discord-proxy . /srv/rp-discord-proxy/rp-discord-proxy/
 COPY --chown=rp-discord-proxy ./entrypoint /srv/rp-discord-proxy/bin/entrypoint
 USER rp-discord-proxy
 ENTRYPOINT ["entrypoint"]
-CMD [ "uvicorn rapidprodiscordproxy.main:app" ]
