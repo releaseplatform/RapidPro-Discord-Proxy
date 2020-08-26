@@ -3,6 +3,10 @@ import requests
 from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.config import RapidProDiscordConfig
 import re
+import io
+from urllib.parse import urlparse
+import os
+import mimetypes
 
 
 class DiscordHandler(discord.Client):
@@ -53,6 +57,25 @@ class DiscordHandler(discord.Client):
         if user.dm_channel is not None and isinstance(
             user.dm_channel, discord.DMChannel
         ):
+            if message.attachments is not None:
+                for attachment in message.attachments:
+                    r = requests.get(
+                        attachment, stream=True, verify=False
+                    )  # TODO DO VERIFY
+                    parsed = urlparse(attachment)
+                    filename = os.path.basename(parsed.path)
+                    print(f"resolved filename to {filename}")
+                    content_type = r.headers.get("content-type")
+                    print(content_type)
+                    if filename == "":
+                        filename = "Attached File"
+                        if content_type is not None:
+                            extension = mimetypes.guess_extension(content_type)
+                            if extension is not None:
+                                filename += extension
+                    f = discord.File(io.BytesIO(r.raw.read()), filename=filename)
+                    print(f)
+                    await user.dm_channel.send(file=f)
             await user.dm_channel.send(message.text)
             requests.post(self.config.sent_url, data={"id": message.id})
 

@@ -4,7 +4,7 @@ import toml
 from typing import List, Optional
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 import codegen.models
 import json
 

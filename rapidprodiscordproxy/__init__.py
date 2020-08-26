@@ -2,6 +2,8 @@ __version__ = "0.0.1"
 
 from pydantic import BaseModel
 from uuid import UUID
+from typing import List, Optional
+from pydantic import AnyHttpUrl
 
 
 class RapidProMessage(BaseModel):
@@ -10,3 +12,4 @@ class RapidProMessage(BaseModel):
     to: int
     # from_: Optional[int] = Field(alias="from")
     channel: UUID
+    attachments: Optional[List[AnyHttpUrl]]

@@ -5,10 +5,13 @@ from rapidprodiscordproxy.discord_handler import DiscordHandler
 import rapidprodiscordproxy.config
 import asyncio
 from typing import Dict
+from uuid import UUID
 
 app = FastAPI()
 
-channels: Dict[str, DiscordHandler] = {}
+channels: Dict[UUID, DiscordHandler] = {}
+
+print("starting up")
 
 
 @app.post("/discord/rp/send")
@@ -21,6 +24,7 @@ async def rapidpro_external_send(message: RapidProMessage):
         raise HTTPException(404, "No channel with that ID found")
     try:
         print(message)
+        print(f"Attachments found in message: {message.attachments}")
         await client.send_dm(message)
     except client.UserNotFoundException:
         raise HTTPException(
