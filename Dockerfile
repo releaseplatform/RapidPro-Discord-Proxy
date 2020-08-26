@@ -32,4 +32,5 @@ COPY --chown=rp-discord-proxy --from=pybuilder /srv/rp-discord-proxy/.local /srv
 COPY --chown=rp-discord-proxy . /srv/rp-discord-proxy/rp-discord-proxy/
 COPY --chown=rp-discord-proxy ./entrypoint /srv/rp-discord-proxy/bin/entrypoint
 USER rp-discord-proxy
+EXPOSE 8000
 ENTRYPOINT ["entrypoint"]
