@@ -1,23 +1,35 @@
+"""This module contains the DiscordHandler class, which handles our message logic"""
+import io
+import mimetypes
+import os
+import re
+from urllib.parse import urlparse
+
 import discord
 import requests
+
 from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.config import RapidProDiscordConfig
-import re
-import io
-from urllib.parse import urlparse
-import os
-import mimetypes
 
 
 class DiscordHandler(discord.Client):
+    """This is our wrapper of the discord.Client which handles incoming
+    messages, and can send messages we pass to it."""
+
     def __init__(self, config: RapidProDiscordConfig, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = config
 
     async def on_ready(self):
+        """This is called by the ready event once the client is logged on and
+        initialized"""
         print(f"Successfully Logged on as {self.user}")
 
     async def on_message(self, message: discord.Message):
+        """This is called by the message event whenever the bot sends/receives a
+        message. We NOP when we send a message, or receive a message in a
+        channel we're in without being @mentioned directly. We forward messages
+        in which we've been mentioned to rapidpro, or any DMs"""
         if self.user == message.author:
             return  # We don't want to handle messages we've sent.
 
@@ -49,6 +61,9 @@ class DiscordHandler(discord.Client):
         print("receive URL", self.config.receive_url)
 
     async def send_dm(self, message: RapidProMessage):
+        """This method allows us to send messages to users, and will download
+        any attachments from the URLs specified in the RapidProMessage that is
+        passed as well."""
         user: discord.User = self.get_user(message.to)
         if user is None:
             raise self.UserNotFoundException()
@@ -59,13 +74,13 @@ class DiscordHandler(discord.Client):
         ):
             if message.attachments is not None:
                 for attachment in message.attachments:
-                    r = requests.get(
+                    req = requests.get(
                         attachment, stream=True, verify=False
                     )  # TODO DO VERIFY
                     parsed = urlparse(attachment)
                     filename = os.path.basename(parsed.path)
                     print(f"resolved filename to {filename}")
-                    content_type = r.headers.get("content-type")
+                    content_type = req.headers.get("content-type")
                     print(content_type)
                     if filename == "":
                         filename = "Attached File"
@@ -73,9 +88,8 @@ class DiscordHandler(discord.Client):
                             extension = mimetypes.guess_extension(content_type)
                             if extension is not None:
                                 filename += extension
-                    f = discord.File(io.BytesIO(r.raw.read()), filename=filename)
-                    print(f)
-                    await user.dm_channel.send(file=f)
+                    file = discord.File(io.BytesIO(req.raw.read()), filename=filename)
+                    await user.dm_channel.send(file=file)
             await user.dm_channel.send(message.text)
             requests.post(self.config.sent_url, data={"id": message.id})
 

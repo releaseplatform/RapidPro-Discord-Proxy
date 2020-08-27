@@ -1,11 +1,14 @@
-from fastapi import FastAPI, HTTPException
-import uvicorn
-from rapidprodiscordproxy import RapidProMessage
-from rapidprodiscordproxy.discord_handler import DiscordHandler
-import rapidprodiscordproxy.config
+"""This module contains the main FastAPI logic as well as the startup logic for our application"""
 import asyncio
 from typing import Dict
 from uuid import UUID
+
+import uvicorn
+from fastapi import FastAPI, HTTPException
+
+import rapidprodiscordproxy.config
+from rapidprodiscordproxy import RapidProMessage
+from rapidprodiscordproxy.discord_handler import DiscordHandler
 
 app = FastAPI()
 
@@ -16,6 +19,9 @@ print("starting up")
 
 @app.post("/discord/rp/send")
 async def rapidpro_external_send(message: RapidProMessage):
+    """This is our route for sending messages. If we pass in a valid
+    RapidProMessage for a channel we know about, we forward the message to
+    discord"""
     print(message)
     print(channels)
     if message.channel in channels:
@@ -34,16 +40,18 @@ async def rapidpro_external_send(message: RapidProMessage):
 
 @app.on_event("startup")
 async def startup():
+    """Our initialization logic. We pull the config from the db and get a client
+    for each discord channel configured in RapidPro"""
     # configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
     configs = rapidprodiscordproxy.config.get_configs_from_db()
     global channels
-    for c in configs:
-        print(c)
-        client = DiscordHandler(c, loop=asyncio.get_running_loop())
-        channels[c.channel_id] = client
+    for config in configs:
+        print(config)
+        client = DiscordHandler(config, loop=asyncio.get_running_loop())
+        channels[config.channel_id] = client
         await client.login()
         asyncio.create_task(
-            client.connect(), name=f"Discord Task {c.channel_id}",
+            client.connect(), name=f"Discord Task {config.channel_id}",
         )
         await client.wait_for("ready")
         print("logged in successfully")
@@ -51,8 +59,9 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    for c in channels.values():
-        await c.logout()
+    """This logs us out of all our clients so discord doesn't get angry at us."""
+    for client in channels.values():
+        await client.logout()
 
 
 if __name__ == "__main__":

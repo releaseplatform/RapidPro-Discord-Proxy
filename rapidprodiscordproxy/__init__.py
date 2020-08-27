@@ -1,12 +1,17 @@
-__version__ = "0.0.1"
-
-from pydantic import BaseModel
-from uuid import UUID
+"""This encapsulates the logic for the rapidpro discord proxy, which
+enables communication with discord (which uses long-lived websockets) and
+rapidpro's courier, which uses http REST"""
 from typing import List, Optional
-from pydantic import AnyHttpUrl
+from uuid import UUID
+
+from pydantic import AnyHttpUrl, BaseModel
+
+__version__ = "0.0.1"
 
 
 class RapidProMessage(BaseModel):
+    """This is the pydantic model which represents messages that courier will send."""
+
     id: str
     text: str
     to: int
