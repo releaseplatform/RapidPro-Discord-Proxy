@@ -75,7 +75,7 @@ class DiscordHandler(discord.Client):
             if message.attachments is not None:
                 for attachment in message.attachments:
                     req = requests.get(
-                        attachment, stream=True, verify=False, timeout=2
+                        attachment, stream=True, timeout=2
                     )  # TODO DO VERIFY
                     parsed = urlparse(attachment)
                     filename = os.path.basename(parsed.path)
