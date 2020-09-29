@@ -59,6 +59,17 @@ class DiscordHandler(discord.Client):
         )
         print("Forwarded to rapidpro" + repr({"text": text, "from": message.author.id}))
         print("receive URL", self.config.receive_url)
+    
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if(payload.user_id == self.user.id):
+            return
+        emoji = str(payload.emoji)
+        # print(f"Received reaction {emoji} on message from {payload.user_id}")
+        requests.post(
+            self.config.receive_url, data={"text": emoji, "from": payload.user_id}
+        )
+
+        
 
     async def send_dm(self, message: RapidProMessage):
         """This method allows us to send messages to users, and will download
@@ -90,7 +101,11 @@ class DiscordHandler(discord.Client):
                                 filename += extension
                     file = discord.File(io.BytesIO(req.raw.read()), filename=filename)
                     await user.dm_channel.send(file=file)
-            await user.dm_channel.send(message.text)
+            discord_msg: discord.Message = await user.dm_channel.send(message.text)
+
+            for quick_reply in message.quick_replies:
+                print(quick_reply)
+                await discord_msg.add_reaction(quick_reply)
             requests.post(self.config.sent_url, data={"id": message.id})
 
     async def login(self):

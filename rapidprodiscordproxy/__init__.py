@@ -18,3 +18,4 @@ class RapidProMessage(BaseModel):
     # from_: Optional[int] = Field(alias="from")
     channel: UUID
     attachments: Optional[List[AnyHttpUrl]]
+    quick_replies: List[str]
