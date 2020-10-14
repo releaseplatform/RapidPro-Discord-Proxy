@@ -3,7 +3,7 @@ import io
 import mimetypes
 import os
 import re
-from typing import Union
+from typing import List, Union
 from urllib.parse import urlparse
 
 import discord
@@ -56,10 +56,20 @@ class DiscordHandler(discord.Client):
         author_with_fragment = f"{message.author.id}#{message.author}"
         print(author_with_fragment)
 
+        attachments: List[str] = []
+        if message.attachments:
+            for attachment in message.attachments:
+                attachments.append(attachment.url)
         requests.post(
-            self.config.receive_url, data={"text": text, "from": message.author.id}
+            self.config.receive_url,
+            data={"text": text, "from": message.author.id, "attachments": attachments},
         )
-        print("Forwarded to rapidpro" + repr({"text": text, "from": message.author.id}))
+        print(
+            "Forwarded to rapidpro"
+            + repr(
+                {"text": text, "from": message.author.id, "attachments": attachments}
+            )
+        )
         print("receive URL", self.config.receive_url)
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
