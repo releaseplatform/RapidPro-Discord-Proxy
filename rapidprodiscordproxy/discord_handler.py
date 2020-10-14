@@ -65,7 +65,7 @@ class DiscordHandler(discord.Client):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == self.user.id:
             return
-        if(payload.emoji.is_custom_emoji()):
+        if payload.emoji.is_custom_emoji():
             found_emoji = f":{payload.emoji.name}:"
         else:
             found_emoji = str(payload.emoji)
