@@ -31,7 +31,7 @@ async def rapidpro_external_send(message: RapidProMessage):
     try:
         print(message)
         print(f"Attachments found in message: {message.attachments}")
-        await client.send_dm(message)
+        await client.send_msg(message)
     except client.UserNotFoundException:
         raise HTTPException(
             404, "No user with that ID found. Do they exist? Do you have permissions?",

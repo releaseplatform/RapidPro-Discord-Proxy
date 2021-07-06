@@ -84,18 +84,21 @@ class DiscordHandler(discord.Client):
             self.config.receive_url, data={"text": found_emoji, "from": payload.user_id}
         )
 
-    async def send_dm(self, message: RapidProMessage):
-        """This method allows us to send messages to users, and will download
-        any attachments from the URLs specified in the RapidProMessage that is
-        passed as well."""
+    async def send_msg(self, message: RapidProMessage):
+        """This method allows us to send messages to users or channels, and will
+        download any attachments from the URLs specified in the RapidProMessage
+        that is passed as well."""
         user: discord.User = self.get_user(message.to)
+        channel: discord.abc.Messageable = None
         if user is None:
-            raise self.UserNotFoundException()
-        if user.dm_channel is None:
+            channel = self.get_channel(message.to)
+            if channel is None:
+                raise self.UserNotFoundException()
+        elif user.dm_channel is None:
             await user.create_dm()
-        if user.dm_channel is not None and isinstance(
-            user.dm_channel, discord.DMChannel
-        ):
+            channel = user.dm_channel
+
+        if channel is not None and isinstance(channel, discord.abc.Messageable):
             if message.attachments is not None:
                 for attachment in message.attachments:
                     req = requests.get(
@@ -113,8 +116,8 @@ class DiscordHandler(discord.Client):
                             if extension is not None:
                                 filename += extension
                     file = discord.File(io.BytesIO(req.raw.read()), filename=filename)
-                    await user.dm_channel.send(file=file)
-            discord_msg: discord.Message = await user.dm_channel.send(
+                    await channel.send(file=file)
+            discord_msg: discord.Message = await channel.send(
                 self.custom_emojiize(message.text)
             )
 
