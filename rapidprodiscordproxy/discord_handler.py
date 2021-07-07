@@ -97,6 +97,8 @@ class DiscordHandler(discord.Client):
         elif user.dm_channel is None:
             await user.create_dm()
             channel = user.dm_channel
+        else:
+            channel = user.dm_channel
 
         if channel is not None and isinstance(channel, discord.abc.Messageable):
             if message.attachments is not None:
