@@ -66,7 +66,7 @@ class DiscordHandler(discord.Client):
                 "text": text,
                 "from": message.author.id,
                 "attachments": attachments,
-                "from_displayname": message.author.display_name,
+                "ext_id": f"{message.id}:{message.author.name}#{message.author.discriminator}",
             },
         )
         print(
