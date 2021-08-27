@@ -62,7 +62,12 @@ class DiscordHandler(discord.Client):
                 attachments.append(attachment.url)
         requests.post(
             self.config.receive_url,
-            data={"text": text, "from": message.author.id, "attachments": attachments},
+            data={
+                "text": text,
+                "from": message.author.id,
+                "attachments": attachments,
+                "from_displayname": message.author.display_name,
+            },
         )
         print(
             "Forwarded to rapidpro"
