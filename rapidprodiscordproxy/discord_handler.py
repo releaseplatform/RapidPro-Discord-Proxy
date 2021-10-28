@@ -85,9 +85,14 @@ class DiscordHandler(discord.Client):
         else:
             found_emoji = str(payload.emoji)
         # print(f"Received reaction {emoji} on message from {payload.user_id}")
-        requests.post(
-            self.config.receive_url, data={"text": found_emoji, "from": payload.user_id}
-        )
+        channel = self.get_channel(payload.channel_id)
+        if isinstance(channel, discord.DMChannel):
+            requests.post(
+                self.config.receive_url,
+                data={"text": found_emoji, "from": payload.user_id},
+            )
+        else:
+            print("Received Emoji Outside DM Channel")
 
     async def send_msg(self, message: RapidProMessage):
         """This method allows us to send messages to users or channels, and will
