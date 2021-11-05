@@ -1,7 +1,9 @@
 """This module contains the main FastAPI logic as well as the startup logic for our application"""
 import asyncio
+import os
 from typing import Dict
 from uuid import UUID
+from discord.flags import Intents
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -34,7 +36,8 @@ async def rapidpro_external_send(message: RapidProMessage):
         await client.send_dm(message)
     except client.UserNotFoundException:
         raise HTTPException(
-            404, "No user with that ID found. Do they exist? Do you have permissions?",
+            404,
+            "No user with that ID found. Do they exist? Do you have permissions?",
         )
 
 
@@ -42,16 +45,21 @@ async def rapidpro_external_send(message: RapidProMessage):
 async def startup():
     """Our initialization logic. We pull the config from the db and get a client
     for each discord channel configured in RapidPro"""
-    # configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
-    configs = rapidprodiscordproxy.config.get_configs_from_db()
+    if os.getenv("RP_DISCORD_PROXY_CONFIG_FILE") == "true":
+        configs = rapidprodiscordproxy.config.parse_config_file("./config.toml")
+    else:
+        configs = rapidprodiscordproxy.config.get_configs_from_db()
     global channels
     for config in configs:
         print(config)
-        client = DiscordHandler(config, loop=asyncio.get_running_loop())
+        intents = Intents.default()
+        intents.members = True
+        client = DiscordHandler(config, loop=asyncio.get_running_loop(), intents=intents)
         channels[config.channel_id] = client
         await client.login()
         asyncio.create_task(
-            client.connect(), name=f"Discord Task {config.channel_id}",
+            client.connect(),
+            name=f"Discord Task {config.channel_id}",
         )
         await client.wait_for("ready")
         print("logged in successfully")

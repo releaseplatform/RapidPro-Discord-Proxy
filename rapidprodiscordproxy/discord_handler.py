@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 import discord
 import requests
-import json
 
 from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.config import RapidProDiscordConfig
@@ -106,13 +105,21 @@ class DiscordHandler(discord.Client):
     #         raise self.ChannelNotFoundException()
 
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        if(self.config.roles_base_url is None):
+        print("asdf")
+        if self.config.roles_base_url is None:
             return
+        print("foo")
         roles_serializable: List[discord.Role] = []
         for role in after.roles:
             roles_serializable.append({"id": role.id, "name": role.name})
 
-        requests.post(self.config.roles_base_url, json=roles_serializable)
+        print(self.config.roles_update_url)
+        resp = requests.post(
+            self.config.roles_update_url,
+            json={"user_id": after.id, "roles": roles_serializable},
+            headers={"Authorization": "Token 7aada1cbe0239a5aba836b0332ee3d22c50704a6"}
+        )
+        print(resp)
 
     class ChannelNotFoundException(Exception):
         pass
