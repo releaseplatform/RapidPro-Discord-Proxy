@@ -29,6 +29,7 @@ class RapidProDiscordConfig(BaseModel):
     channel_id: uuid.UUID
     discord_bot_token: str
     name: Optional[str]
+    roles_base_url: Optional[AnyHttpUrl]
 
     @property
     def base_url(self):
@@ -52,6 +53,13 @@ class RapidProDiscordConfig(BaseModel):
         """The failed URL configured in courier. This is where we inform courier
         when we've been unable to send a message."""
         return self.base_url + "/failed"
+
+    @property
+    def roles_update_url(self):
+        if self.roles_base_url is not None:
+            return self.roles_base_url + "/update"
+        else:
+            return None
 
 
 def parse_config_file(path: str = "./config.yml") -> List[RapidProDiscordConfig]:

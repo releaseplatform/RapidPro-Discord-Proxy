@@ -3,10 +3,12 @@ import io
 import mimetypes
 import os
 import re
+from typing import List
 from urllib.parse import urlparse
 
 import discord
 import requests
+import json
 
 from rapidprodiscordproxy import RapidProMessage
 from rapidprodiscordproxy.config import RapidProDiscordConfig
@@ -102,6 +104,15 @@ class DiscordHandler(discord.Client):
     #         await channel.send(message)
     #     else:
     #         raise self.ChannelNotFoundException()
+
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if(self.config.roles_base_url is None):
+            return
+        roles_serializable: List[discord.Role] = []
+        for role in after.roles:
+            roles_serializable.append({"id": role.id, "name": role.name})
+
+        requests.post(self.config.roles_base_url, json=roles_serializable)
 
     class ChannelNotFoundException(Exception):
         pass
