@@ -105,19 +105,57 @@ class DiscordHandler(discord.Client):
     #         raise self.ChannelNotFoundException()
 
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        print("asdf")
         if self.config.roles_base_url is None:
             return
-        print("foo")
-        roles_serializable: List[discord.Role] = []
+        roles_serializable = []
         for role in after.roles:
-            roles_serializable.append({"id": role.id, "name": role.name})
+            roles_serializable.append({"discord_id": role.id, "name": role.name})
 
-        print(self.config.roles_update_url)
+        print(
+            requests.post(
+                self.config.roles_update_url,
+                json={"user_discord_id": after.id, "roles": roles_serializable},
+                headers={
+                    "Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"
+                },
+            )
+        )
+
+    def payload_from_role(self, role: discord.role):
+        members = list(map(lambda m: m.id, role.members))
+        payload = {
+            "name": role.name,
+            "discord_id": role.id,
+            "crew_members_discord_ids": members,
+        }
+        print(f"Payload: {payload}")
+        return payload
+
+    async def on_guild_role_create(self, role: discord.Role):
+        print("role created")
+        payload = self.payload_from_role(role)
         resp = requests.post(
-            self.config.roles_update_url,
-            json={"user_id": after.id, "roles": roles_serializable},
-            headers={"Authorization": "Token 7aada1cbe0239a5aba836b0332ee3d22c50704a6"}
+            f"{self.config.roles_base_url}/",
+            json=payload,
+            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
+        )
+        print(resp)
+
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+        print("role updated")
+        payload = self.payload_from_role(after)
+        resp = requests.put(
+            f"{self.config.roles_base_url}/{after.id}/",
+            json=payload,
+            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
+        )
+        print(resp)
+
+    async def on_guild_role_delete(self, role: discord.Role):
+        print("role deleted")
+        resp = requests.delete(
+            f"{self.config.roles_base_url}/{role.id}/",
+            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
         )
         print(resp)
 
