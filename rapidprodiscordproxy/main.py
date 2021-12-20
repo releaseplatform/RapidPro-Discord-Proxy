@@ -33,7 +33,7 @@ async def rapidpro_external_send(message: RapidProMessage):
     try:
         print(message)
         print(f"Attachments found in message: {message.attachments}")
-        await client.send_dm(message)
+        await client.send_msg(message)
     except client.UserNotFoundException:
         raise HTTPException(
             404,
@@ -54,7 +54,9 @@ async def startup():
         print(config)
         intents = Intents.default()
         intents.members = True
-        client = DiscordHandler(config, loop=asyncio.get_running_loop(), intents=intents)
+        client = DiscordHandler(
+            config, loop=asyncio.get_running_loop(), intents=intents
+        )
         channels[config.channel_id] = client
         await client.login()
         asyncio.create_task(

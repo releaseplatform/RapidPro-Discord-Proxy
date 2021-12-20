@@ -3,10 +3,11 @@ import io
 import mimetypes
 import os
 import re
-from typing import List
+from typing import List, Union
 from urllib.parse import urlparse
 
 import discord
+import emoji
 import requests
 
 from rapidprodiscordproxy import RapidProMessage
@@ -55,24 +56,61 @@ class DiscordHandler(discord.Client):
         author_with_fragment = f"{message.author.id}#{message.author}"
         print(author_with_fragment)
 
+        attachments: List[str] = []
+        if message.attachments:
+            for attachment in message.attachments:
+                attachments.append(attachment.url)
         requests.post(
-            self.config.receive_url, data={"text": text, "from": message.author.id}
+            self.config.receive_url,
+            data={
+                "text": text,
+                "from": message.author.id,
+                "attachments": attachments,
+                "ext_id": f"{message.id}:{message.author.name}#{message.author.discriminator}",
+            },
         )
-        print("Forwarded to rapidpro" + repr({"text": text, "from": message.author.id}))
+        print(
+            "Forwarded to rapidpro"
+            + repr(
+                {"text": text, "from": message.author.id, "attachments": attachments}
+            )
+        )
         print("receive URL", self.config.receive_url)
 
-    async def send_dm(self, message: RapidProMessage):
-        """This method allows us to send messages to users, and will download
-        any attachments from the URLs specified in the RapidProMessage that is
-        passed as well."""
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.user_id == self.user.id:
+            return
+        if payload.emoji.is_custom_emoji():
+            found_emoji = f":{payload.emoji.name}:"
+        else:
+            found_emoji = str(payload.emoji)
+        # print(f"Received reaction {emoji} on message from {payload.user_id}")
+        channel = self.get_channel(payload.channel_id)
+        if isinstance(channel, discord.DMChannel):
+            requests.post(
+                self.config.receive_url,
+                data={"text": found_emoji, "from": payload.user_id},
+            )
+        else:
+            print("Received Emoji Outside DM Channel")
+
+    async def send_msg(self, message: RapidProMessage):
+        """This method allows us to send messages to users or channels, and will
+        download any attachments from the URLs specified in the RapidProMessage
+        that is passed as well."""
         user: discord.User = self.get_user(message.to)
+        channel: discord.abc.Messageable = None
         if user is None:
-            raise self.UserNotFoundException()
-        if user.dm_channel is None:
+            channel = self.get_channel(message.to)
+            if channel is None:
+                raise self.UserNotFoundException()
+        elif user.dm_channel is None:
             await user.create_dm()
-        if user.dm_channel is not None and isinstance(
-            user.dm_channel, discord.DMChannel
-        ):
+            channel = user.dm_channel
+        else:
+            channel = user.dm_channel
+
+        if channel is not None and isinstance(channel, discord.abc.Messageable):
             if message.attachments is not None:
                 for attachment in message.attachments:
                     req = requests.get(
@@ -90,8 +128,16 @@ class DiscordHandler(discord.Client):
                             if extension is not None:
                                 filename += extension
                     file = discord.File(io.BytesIO(req.raw.read()), filename=filename)
-                    await user.dm_channel.send(file=file)
-            await user.dm_channel.send(message.text)
+                    await channel.send(file=file)
+            discord_msg: discord.Message = await channel.send(
+                self.custom_emojiize(message.text)
+            )
+
+            for quick_reply in message.quick_replies:
+                print(quick_reply)
+                r = self.parse_quick_reply(quick_reply)
+                if r != "":
+                    await discord_msg.add_reaction(r)
             requests.post(self.config.sent_url, data={"id": message.id})
 
     async def login(self):
@@ -158,6 +204,32 @@ class DiscordHandler(discord.Client):
             headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
         )
         print(resp)
+
+    def parse_quick_reply(self, reply: str) -> Union[discord.Emoji, str]:
+        """This finds out if we have a custom emoji that matches our quick
+        reply. If it doesn't, we try to find an emoji that will work with the
+        emoji library. If that fails, we can't parse it."""
+        reply = reply.strip(":")
+        print(self.emojis)
+        for e in self.emojis:
+            if e.name == reply:
+                return e
+        if emoji.emoji_count(reply) == 1:
+            return reply
+        return emoji.EMOJI_ALIAS_UNICODE.get(f":{reply}:", "")
+
+    def custom_emojiize(self, message: str):
+        """This finds custom emoji in a message by name, and replaces it with
+        the way discord expects to see it."""
+        pattern = re.compile(":[a-zA-Z0-9\\+\\-_&.ô’Åéãíç()!#*]+:")
+
+        def repl(match: re.Match) -> str:
+            for e in self.emojis:
+                if e.name == match.group().strip(":"):
+                    return str(e)
+            return match.group()
+
+        return pattern.sub(repl, message)
 
     class ChannelNotFoundException(Exception):
         pass
