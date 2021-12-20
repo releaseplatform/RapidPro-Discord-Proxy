@@ -161,9 +161,7 @@ class DiscordHandler(discord.Client):
             requests.post(
                 self.config.roles_update_url,
                 json={"user_discord_id": after.id, "roles": roles_serializable},
-                headers={
-                    "Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"
-                },
+                headers={"Authorization": self.config.roles_auth_token},
             )
         )
 
@@ -185,7 +183,7 @@ class DiscordHandler(discord.Client):
         resp = requests.post(
             f"{self.config.roles_base_url}/",
             json=payload,
-            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
+            headers={"Authorization": self.config.roles_auth_token},
         )
         print(resp)
 
@@ -197,7 +195,7 @@ class DiscordHandler(discord.Client):
         resp = requests.put(
             f"{self.config.roles_base_url}/{after.id}/",
             json=payload,
-            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
+            headers={"Authorization": self.config.roles_auth_token},
         )
         print(resp)
 
@@ -207,7 +205,7 @@ class DiscordHandler(discord.Client):
         print("role deleted")
         resp = requests.delete(
             f"{self.config.roles_base_url}/{role.id}/",
-            headers={"Authorization": "Token 874dfac610ea2dc565836afd338edd84350ab72b"},
+            headers={"Authorization": self.config.roles_auth_token},
         )
         print(resp)
 

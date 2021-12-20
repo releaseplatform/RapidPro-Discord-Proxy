@@ -30,6 +30,7 @@ class RapidProDiscordConfig(BaseModel):
     discord_bot_token: str
     name: Optional[str]
     roles_base_url: Optional[AnyHttpUrl]
+    roles_auth_token: Optional[str]
 
     @property
     def base_url(self):
