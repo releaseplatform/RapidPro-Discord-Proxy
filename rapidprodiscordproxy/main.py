@@ -53,7 +53,8 @@ async def startup():
     for config in configs:
         print(config)
         intents = Intents.default()
-        intents.members = True
+        if config.roles_base_url is not None:
+            intents.members = True
         client = DiscordHandler(
             config, loop=asyncio.get_running_loop(), intents=intents
         )
