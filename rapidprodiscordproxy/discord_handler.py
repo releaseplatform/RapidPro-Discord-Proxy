@@ -178,6 +178,8 @@ class DiscordHandler(discord.Client):
         return payload
 
     async def on_guild_role_create(self, role: discord.Role):
+        if self.config.roles_base_url is None:
+            return
         print("role created")
         payload = self.payload_from_role(role)
         resp = requests.post(
@@ -188,6 +190,8 @@ class DiscordHandler(discord.Client):
         print(resp)
 
     async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+        if self.config.roles_base_url is None:
+            return
         print("role updated")
         payload = self.payload_from_role(after)
         resp = requests.put(
@@ -198,6 +202,8 @@ class DiscordHandler(discord.Client):
         print(resp)
 
     async def on_guild_role_delete(self, role: discord.Role):
+        if self.config.roles_base_url is None:
+            return
         print("role deleted")
         resp = requests.delete(
             f"{self.config.roles_base_url}/{role.id}/",
