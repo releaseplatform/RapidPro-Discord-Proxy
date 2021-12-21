@@ -101,6 +101,8 @@ def get_configs_from_db() -> List[RapidProDiscordConfig]:
                 channel_id=channel.uuid,
                 name=channel.name,
                 discord_bot_token=channel_raw_config["auth_token"],
+                roles_base_url=channel_raw_config.get("roles_base_url"),
+                roles_auth_token=channel_raw_config.get("roles_auth_token"),
             )
         )
     return configs
