@@ -22,13 +22,12 @@ RUN apt-get -yq update \
         && rm -rf /var/lib/apt/lists/* \
         && apt-get clean
 COPY --chown=rp-discord-proxy poetry.lock pyproject.toml ./
+RUN pip install --no-cache-dir poetry
+RUN poetry install --only main
 USER rp-discord-proxy
-RUN pip install --no-cache-dir --user poetry
-RUN poetry install --no-dev
 
 
 FROM base AS rp-discord-proxy
-COPY --chown=rp-discord-proxy --from=pybuilder /srv/rp-discord-proxy/.local /srv/rp-discord-proxy/.local
 COPY --chown=rp-discord-proxy . /srv/rp-discord-proxy/rp-discord-proxy/
 COPY --chown=rp-discord-proxy ./entrypoint /srv/rp-discord-proxy/bin/entrypoint
 USER rp-discord-proxy
